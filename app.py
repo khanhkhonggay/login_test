@@ -1,12 +1,16 @@
-from flask import Flask , redirect , url_for , json , render_template
+from flask import Flask , redirect , url_for , json , render_template , request
 
 from flask_sqlalchemy import SQLAlchemy
 
+from flaskext.mysql import MySQL
 
-app = Flask(static_folder='static' , template_folder='templates')
+import pymysql
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@login_test/khanhcuto'
+app = Flask(__name__ , static_folder='static' , template_folder='templates')
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/khanhcuto'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -24,7 +28,7 @@ class User(db.Model):
     
     password = db.Column(db.String(50) , nullable = False)
     
-    def __init__ (self,user, password):
+    def __init__ (self,username, password):
         
         self.username = username
         
@@ -37,7 +41,31 @@ class User(db.Model):
 @app.route('/' , methods = ['GET' , 'POST'])
 def Login():
     
-    return render_template('login.html')
+    if request.method == "POST":
+        
+        username = request.form['username']
+        
+        password = request.form['password']
+        
+        user = User.query.filter_by(username = username , password = password).first()
+        
+        if user:
+            
+            return "You Have Been Login"
+        
+        if not user:
+            
+            return "You Not Create Account Yet"
+        
+    if request.method == "GET":
+    
+        return render_template('login.html')
+    
+    
+@app.route('/Register' , methods = ['GET' , 'POST'])
+def Register():
+    
+    return render_template('register.html')
     
 
 
@@ -49,10 +77,9 @@ def Login():
 
 
 
+######################################
 
-###################################
 
-
-if __name__ == 'main':
+if __name__ == '__main__':
     
-    app.run(debug=True , host='127.0.0.1' , port=5000)
+    app.run(host='127.0.0.1' , port=5000 , debug=True)
